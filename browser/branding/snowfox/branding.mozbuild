@@ -1,0 +1,10 @@
+# Find these lines and update them:
+if CONFIG['MOZ_UPDATE_CHANNEL'] == 'release':
+    BRANDING_FILES += [
+        'firefox.icns',
+        'firefox.ico', 
+        'default.ico',
+        'content/about-logo.png',
+        'content/about-logo@2x.png',
+        'content/icon64.png',
+    ]

@@ -1,0 +1,178 @@
+name: Build & Release Snowfox
+
+# Push a version tag to trigger a full release build, e.g.:
+#   git tag v154.0  &&  git push origin v154.0
+# Or run manually from the Actions tab (workflow_dispatch).
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  # ------------------------------------------------------------------ Linux
+  linux:
+    name: Linux (AppImage)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free up disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force || true
+          df -h
+
+      - name: Write CI mozconfig
+        run: |
+          cat > .mozconfig-ci <<'EOF'
+          ac_add_options --with-branding=browser/branding/snowfox
+          ac_add_options --enable-optimize
+          ac_add_options --disable-debug
+          ac_add_options --disable-tests
+          mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/obj-build
+          export MOZ_UPDATE_CHANNEL=release
+          EOF
+
+      - name: Bootstrap toolchains
+        env:
+          MOZCONFIG: ${{ github.workspace }}/.mozconfig-ci
+        run: ./mach --no-interactive bootstrap --application-choice browser
+
+      - name: Build
+        env:
+          MOZCONFIG: ${{ github.workspace }}/.mozconfig-ci
+        run: ./mach build
+
+      - name: Package
+        env:
+          MOZCONFIG: ${{ github.workspace }}/.mozconfig-ci
+        run: ./mach package
+
+      - name: Build AppImage
+        run: |
+          set -euo pipefail
+          PKG=$(find obj-build/dist -maxdepth 1 -name 'firefox-*.tar.*' | head -1)
+          echo "Packaged tarball: $PKG"
+          mkdir -p AppDir/usr/bin
+          tar -xf "$PKG" -C AppDir/usr/bin --strip-components=1
+          cp browser/branding/snowfox/default256.png AppDir/snowfox.png
+          cat > AppDir/snowfox.desktop <<'EOF'
+          [Desktop Entry]
+          Name=Snowfox
+          Exec=firefox %u
+          Icon=snowfox
+          Type=Application
+          Categories=Network;WebBrowser;
+          EOF
+          cat > AppDir/AppRun <<'EOF'
+          #!/bin/sh
+          HERE=$(dirname "$(readlink -f "$0")")
+          exec "$HERE/usr/bin/firefox" "$@"
+          EOF
+          chmod +x AppDir/AppRun
+          wget -q https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
+          chmod +x appimagetool
+          ./appimagetool --appimage-extract-and-run AppDir Snowfox-x86_64.AppImage
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: Snowfox-x86_64.AppImage
+
+  # ------------------------------------------------------------------ macOS
+  macos:
+    name: macOS (DMG)
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write CI mozconfig
+        run: |
+          cat > .mozconfig-ci <<'EOF'
+          ac_add_options --with-branding=browser/branding/snowfox
+          ac_add_options --enable-optimize
+          ac_add_options --disable-debug
+          ac_add_options --disable-tests
+          mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/obj-build
+          export MOZ_UPDATE_CHANNEL=release
+          EOF
+
+      - name: Bootstrap toolchains
+        env:
+          MOZCONFIG: ${{ github.workspace }}/.mozconfig-ci
+        run: ./mach --no-interactive bootstrap --application-choice browser
+
+      - name: Build
+        env:
+          MOZCONFIG: ${{ github.workspace }}/.mozconfig-ci
+        run: ./mach build
+
+      - name: Package (produces .dmg)
+        env:
+          MOZCONFIG: ${{ github.workspace }}/.mozconfig-ci
+        run: ./mach package
+
+      - name: Collect DMG
+        run: |
+          set -euo pipefail
+          DMG=$(find obj-build/dist -maxdepth 1 -name '*.dmg' | head -1)
+          cp "$DMG" Snowfox.dmg
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: Snowfox.dmg
+
+  # ---------------------------------------------------------------- Windows
+  windows:
+    name: Windows (zip)
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write CI mozconfig
+        run: |
+          cat > .mozconfig-ci <<'EOF'
+          ac_add_options --with-branding=browser/branding/snowfox
+          ac_add_options --enable-optimize
+          ac_add_options --disable-debug
+          ac_add_options --disable-tests
+          mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/obj-build
+          export MOZ_UPDATE_CHANNEL=release
+          EOF
+
+      - name: Bootstrap toolchains
+        env:
+          MOZCONFIG: ${{ github.workspace }}/.mozconfig-ci
+        run: ./mach --no-interactive bootstrap --application-choice browser
+
+      - name: Build
+        env:
+          MOZCONFIG: ${{ github.workspace }}/.mozconfig-ci
+        run: ./mach build
+
+      - name: Package
+        env:
+          MOZCONFIG: ${{ github.workspace }}/.mozconfig-ci
+        run: ./mach package
+
+      - name: Collect zip
+        run: |
+          set -euo pipefail
+          ZIP=$(find obj-build/dist -maxdepth 1 -name 'firefox-*.zip' | head -1)
+          cp "$ZIP" Snowfox-win64.zip
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: Snowfox-win64.zip

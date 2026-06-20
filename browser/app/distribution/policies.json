@@ -1,0 +1,78 @@
+{
+  "policies": {
+    "DisableTelemetry": true,
+    "DisableFirefoxStudies": true,
+    "DisablePocket": true,
+    "DisableFirefoxAccounts": true,
+    "OverrideFirstRunPage": "",
+    "OverridePostUpdatePage": "",
+    "Extensions": {
+      "Install": [
+        "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/addon-latest.xpi",
+        "https://cdn.mullvad.net/browser-extension/0.9.10/mullvad-browser-extension-0.9.10.xpi",
+        "https://addons.mozilla.org/firefox/downloads/latest/dont-track-me-google1/addon-latest.xpi",
+        "https://addons.mozilla.org/firefox/downloads/latest/absolutedouble-trace/addon-latest.xpi",
+        "https://addons.mozilla.org/firefox/downloads/latest/happy-bonobo-disable-webrtc/addon-latest.xpi",
+        "https://addons.mozilla.org/firefox/downloads/latest/user-agent-string-switcher/addon-latest.xpi"
+      ],
+      "Locked": []
+    },
+    "SearchEngines": {
+      "Add": [
+        {
+          "Name": "SearXNG",
+          "URLTemplate": "https://baresearch.org/search?q={searchTerms}",
+          "Method": "GET",
+          "IconURL": "https://baresearch.org/favicon.ico",
+          "Alias": "@sx",
+          "Description": "Privacy-respecting metasearch engine"
+        },
+        {
+          "Name": "Brave Search",
+          "URLTemplate": "https://search.brave.com/search?q={searchTerms}",
+          "SuggestURLTemplate": "https://search.brave.com/api/suggest?q={searchTerms}",
+          "Method": "GET",
+          "IconURL": "https://search.brave.com/favicon.ico",
+          "Alias": "@brave",
+          "Description": "Independent, privacy-respecting search engine"
+        }
+      ],
+      "Default": "SearXNG",
+      "Remove": ["Google", "Bing", "Amazon.com", "eBay", "Twitter", "Wikipedia (en)"]
+    },
+    "FirefoxHome": {
+      "Search": true,
+      "TopSites": false,
+      "SponsoredTopSites": false,
+      "Highlights": false,
+      "Pocket": false,
+      "SponsoredPocket": false,
+      "Snippets": false,
+      "Locked": false
+    },
+    "DisplayBookmarksToolbar": "never",
+    "NoDefaultBookmarks": true,
+    "Permissions": {
+      "Camera": {
+        "BlockNewRequests": true,
+        "Locked": true
+      },
+      "Microphone": {
+        "BlockNewRequests": true,
+        "Locked": true
+      },
+      "Location": {
+        "BlockNewRequests": true,
+        "Locked": true
+      },
+      "Notifications": {
+        "BlockNewRequests": true,
+        "Locked": true
+      }
+    },
+    "DNSOverHTTPS": {
+      "Enabled": true,
+      "ProviderURL": "https://cloudflare-dns.com/dns-query"
+    }
+  }
+}
