@@ -1,63 +1,94 @@
-# Snowfox
+# Snowfox 
 
-A privacy-focused web browser built on Firefox. The idea is simple: take Firefox,
-strip out the tracking and telemetry, harden it against fingerprinting, and ship it
-with sensible privacy defaults already turned on so you don't have to fiddle with
-about:config for hours.
+### The browser that makes companies cry for your data.
 
-It's similar in spirit to Mullvad Browser and LibreWolf.
+![Linux](https://img.shields.io/badge/Linux-Available-238636?style=for-the-badge&logo=linux&logoColor=white)
+![Windows](https://img.shields.io/badge/Windows-Available-238636?style=for-the-badge&logo=windows&logoColor=white)
 
-## Download
+![Firefox](https://img.shields.io/badge/Based%20on-Firefox-FF7139?style=for-the-badge&logo=firefoxbrowser&logoColor=white)
+![Status](https://img.shields.io/badge/Status-Beta-6E7681?style=for-the-badge)
+![Privacy](https://img.shields.io/badge/Privacy-First-2EA043?style=for-the-badge)
 
-Grab the latest build from the [releases page](https://github.com/sqlsnxw/Snowfox/releases).
+</div>
 
-- Linux: download the `.AppImage`, `chmod +x` it, and run it.
-- Windows: download the zip, extract it, and run `firefox.exe` inside the Snowfox folder.
+---
 
-## Why the repo is small
+Snowfox is a Firefox-based browser focused on privacy and reducing browser fingerprinting.
 
-Snowfox doesn't keep a copy of the Firefox source in here. That would be gigabytes and
-tens of thousands of files. Instead this repo only holds the things that make Snowfox
-different from Firefox: the privacy config, the patches, the branding, and the build
-scripts. The actual Firefox source gets downloaded when you build. Projects like Helium
-and ungoogled-chromium work the same way.
+It ships with privacy-focused defaults, a clean interface, and useful extensions already set up so you don’t have to spend time configuring everything after install.
 
-## What's changed from stock Firefox
+---
 
-The interesting stuff lives in `config/`:
+## Features
 
-- `snowfox.cfg` is the hardening: resistFingerprinting, all telemetry off, tracking
-  protection, DNS-over-HTTPS, HTTPS-only mode, clear-on-shutdown, and a pile of other
-  prefs. This is where most of the privacy actually comes from.
-- `policies.json` auto-installs the extensions on first run and locks down a few settings.
+- Privacy-focused defaults out of the box
+- Browser fingerprinting resistance
+- Enhanced tracking protection
+- SearXNG as the default search engine
+- Vertical and horizontal tab support
+- Dark UI by default
+- uBlock Origin included
+- Telemetry disabled
+- Pocket disabled
+- Sponsored content disabled
 
-Search defaults to SearXNG, with DuckDuckGo as a second option.
+---
 
-Extensions that come pre-installed: uBlock Origin, ClearURLs, Mullvad, NoScript,
-Multi-Account Containers, and a User-Agent switcher. A couple of those are removable
-if you don't want them.
+## Included Extensions
 
-There's also a custom UI theme in `ui/userChrome.css` (rounded address bar, smooth tab
-animations, a fox-orange accent).
+Snowfox ships with:
 
-## Building it yourself
+- ClearURLs
+- Firefox Multi-Account Containers
+- Mullvad Browser Extension
+- NoScript
+- uBlock Origin
+- User-Agent Switcher and Manager
 
-Heads up: compiling Firefox is heavy. You need a lot of disk space and time, and a proper
-build environment. See Mozilla's [build docs](https://firefox-source-docs.mozilla.org/setup/).
+Everything here has a purpose — blocking trackers, isolating sessions, and making fingerprinting harder without adding unnecessary clutter.
 
-```
-git clone https://github.com/sqlsnxw/Snowfox.git
-cd Snowfox
-./build/build.sh
-```
+---
 
-That fetches the Firefox version pinned in `firefox_version.txt` (currently an ESR
-release), applies the patches, bakes in the config, and packages it.
+## Screenshot
 
-To cut a release with builds for all platforms, push a tag like `v1.0.0` and the GitHub
-Actions workflow takes care of the rest.
+<img width="1577" height="860" alt="da browser" src="https://github.com/user-attachments/assets/2fbf9b4e-fcba-4678-890b-bdff9de2cc7d" />
 
-## A note on the name
+---
 
-Snowfox isn't affiliated with Mozilla. "Firefox" is Mozilla's trademark, so Snowfox uses
-its own name and logo. The Firefox source it's built on is licensed under the MPL 2.0.
+## Fingerprinting Test
+
+Snowfox running the EFF Cover Your Tracks test:
+
+<img width="984" height="299" alt="results ahah" src="https://github.com/user-attachments/assets/55ebd1a9-240e-4517-b1cb-a3f63c5dc074" />
+
+---
+
+## Downloads
+
+Get the latest build from the Releases page.
+
+| Platform | File |
+|----------|------|
+| Windows | Snowfox-win64.zip |
+| Linux | Snowfox-x86_64.AppImage |
+
+Windows and Linux builds are available now. 
+
+---
+
+## Project Structure
+
+```text
+Snowfox/
+├── browser/
+│   ├── branding/
+│   │   └── snowfox/
+│   └── app/
+│       └── distribution/
+│           └── policies.json
+├── build/
+├── docs/
+├── assets/
+├── mozconfig
+├── LICENSE
+└── README.md
