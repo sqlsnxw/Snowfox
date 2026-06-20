@@ -1,0 +1,85 @@
+/* ============================================================================
+   Snowfox UI theme — sleek, rounded, animated.
+   Applies to the browser chrome (tabs, toolbar, urlbar, menus).
+   Enabled via toolkit.legacyUserProfileCustomizations.stylesheets = true
+   (set in snowfox.cfg). Lives in <profile>/chrome/userChrome.css.
+   ============================================================================ */
+
+:root {
+  --sf-accent: #e8633a;            /* Snowfox fox-orange */
+  --sf-accent-soft: #f0855f;
+  --sf-radius: 12px;
+  --sf-speed: 160ms;
+  --sf-ease: cubic-bezier(.22,.61,.36,1);
+}
+
+/* Smooth everything by default */
+* { transition: background-color var(--sf-speed) var(--sf-ease),
+                color var(--sf-speed) var(--sf-ease),
+                border-color var(--sf-speed) var(--sf-ease),
+                box-shadow var(--sf-speed) var(--sf-ease) !important; }
+
+/* ---- Tabs: rounded, lift on hover, animate in ---------------------------- */
+.tabbrowser-tab .tab-background {
+  border-radius: var(--sf-radius) !important;
+  margin-block: 4px !important;
+}
+.tabbrowser-tab:hover .tab-background {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,.18) !important;
+}
+.tabbrowser-tab[selected] .tab-background {
+  box-shadow: inset 0 -2px 0 0 var(--sf-accent) !important;
+}
+@keyframes sf-tab-in { from { opacity:0; transform: translateY(-6px) scale(.96);} to { opacity:1; transform:none; } }
+.tabbrowser-tab { animation: sf-tab-in var(--sf-speed) var(--sf-ease); }
+
+/* ---- Address bar: floating pill that expands on focus -------------------- */
+#urlbar,
+#searchbar {
+  border-radius: 999px !important;
+  box-shadow: 0 1px 6px rgba(0,0,0,.12) !important;
+}
+#urlbar[focused="true"] {
+  box-shadow: 0 0 0 2px var(--sf-accent), 0 4px 16px rgba(232,99,58,.25) !important;
+}
+#urlbar[focused="true"] > #urlbar-background {
+  transform: scale(1.01);
+}
+.urlbarView {
+  border-radius: var(--sf-radius) !important;
+  margin-top: 6px !important;
+  overflow: hidden;
+}
+.urlbarView-row { border-radius: 8px !important; }
+.urlbarView-row[selected],
+.urlbarView-row:hover { background-color: color-mix(in srgb, var(--sf-accent) 14%, transparent) !important; }
+
+/* ---- Toolbar buttons: round, accent on hover ---------------------------- */
+toolbarbutton .toolbarbutton-icon,
+.toolbarbutton-1 > .toolbarbutton-badge-stack {
+  border-radius: 10px !important;
+}
+toolbarbutton:hover .toolbarbutton-icon {
+  background-color: color-mix(in srgb, var(--sf-accent) 16%, transparent) !important;
+  transform: translateY(-1px);
+}
+toolbarbutton:active .toolbarbutton-icon { transform: scale(.92); }
+
+/* ---- Popups / menus: rounded with a pop-in animation -------------------- */
+menupopup, panel {
+  --panel-border-radius: var(--sf-radius) !important;
+}
+@keyframes sf-pop { from { opacity:0; transform: translateY(-4px) scale(.98);} to { opacity:1; transform:none; } }
+menupopup > menu, menupopup > menuitem { border-radius: 8px !important; }
+panel::part(content) { animation: sf-pop var(--sf-speed) var(--sf-ease); }
+
+/* ---- Subtle, modern toolbar ------------------------------------------- */
+#navigator-toolbox { border-bottom: none !important; }
+#nav-bar {
+  box-shadow: 0 1px 0 rgba(0,0,0,.06) !important;
+  padding-block: 2px;
+}
+
+/* Accent the find bar + active form controls */
+.findbar-textbox:focus { box-shadow: 0 0 0 2px var(--sf-accent) !important; }

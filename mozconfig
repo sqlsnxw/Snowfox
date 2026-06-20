@@ -1,0 +1,21 @@
+# Snowfox build configuration for Firefox.
+# Docs: https://firefox-source-docs.mozilla.org/setup/configuring_build_options.html
+
+# Build an optimized browser application.
+ac_add_options --enable-application=browser
+ac_add_options --enable-optimize
+ac_add_options --disable-debug
+
+# Use Snowfox branding (see branding/ and patches/).
+# ac_add_options --with-branding=browser/branding/snowfox
+
+# Disable telemetry / data reporting by default.
+ac_add_options --disable-crashreporter
+mk_add_options MOZ_DATA_REPORTING=0
+ac_add_options MOZ_TELEMETRY_REPORTING=0
+
+# Put build output under work/ so it's easy to find and gitignored.
+mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/obj-snowfox
+
+# Speed up incremental builds if sccache is installed (optional).
+# ac_add_options --with-ccache=sccache

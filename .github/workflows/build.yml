@@ -1,0 +1,38 @@
+name: Build Snowfox
+
+# Builds Snowfox on demand. Firefox builds are large and slow, so this does NOT
+# run automatically on every push by default — trigger it manually from the
+# Actions tab, or uncomment the `push:` trigger below.
+on:
+  workflow_dispatch:
+  # push:
+  #   branches: [ main ]
+
+jobs:
+  validate:
+    name: Validate repo (fast)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check pinned Firefox version is reachable
+        run: |
+          VERSION="$(tr -d '[:space:]' < firefox_version.txt)"
+          URL="https://archive.mozilla.org/pub/firefox/releases/$VERSION/source/firefox-$VERSION.source.tar.xz"
+          echo "Checking $URL"
+          curl -fsI "$URL" > /dev/null && echo "✓ Firefox $VERSION source is available"
+      - name: Lint shell scripts
+        run: |
+          sudo apt-get update && sudo apt-get install -y shellcheck
+          shellcheck build/*.sh
+
+  build:
+    name: Build Snowfox (manual)
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Free up disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android || true
+      - name: Build
+        run: ./build/build.sh

@@ -1,0 +1,141 @@
+name: Release Snowfox
+
+# Builds Snowfox for Windows, macOS, and Linux, then publishes the installers
+# to a GitHub Release so users can just download and run — no cloning/building.
+#
+# HOW TO CUT A RELEASE:
+#   1. Make sure firefox_version.txt + patches/ are how you want them.
+#   2. Tag and push:  git tag v1.0.0 && git push origin v1.0.0
+#   3. This workflow builds all 3 platforms and attaches the files to the
+#      release at: https://github.com/sqlsnxw/Snowfox/releases
+#
+# You can also run it manually from the Actions tab (workflow_dispatch).
+#
+# ⚠️ IMPORTANT NOTES (please read):
+#   • Building Firefox is heavy. GitHub's FREE runners have limited disk/time and
+#     may not finish a full Firefox build. If a job fails on resource limits,
+#     you'll need larger runners (GitHub "larger runners" or a self-hosted machine).
+#   • macOS .dmg and Windows .exe will show "unidentified developer" warnings unless
+#     they are CODE SIGNED + (mac) notarized. That needs an Apple Developer cert and
+#     a Windows code-signing cert — add them as repo secrets and wire up signing.
+#     Until then, downloads work but users must click through an OS warning.
+
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+permissions:
+  contents: write   # needed to create the Release and upload assets
+
+jobs:
+  build:
+    name: Build (${{ matrix.os_name }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os_name: linux
+            runner: ubuntu-latest
+            artifact_glob: "obj-snowfox/dist/*.tar.*"
+          - os_name: windows
+            runner: windows-latest
+            artifact_glob: "obj-snowfox/dist/install/**/*.exe"
+          - os_name: macos
+            runner: macos-latest
+            artifact_glob: "obj-snowfox/dist/*.dmg"
+    steps:
+      - name: Checkout Snowfox
+        uses: actions/checkout@v4
+
+      - name: Free up disk space (Linux)
+        if: matrix.os_name == 'linux'
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache || true
+          df -h
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Fetch Firefox source + apply Snowfox patches
+        shell: bash
+        run: |
+          ./build/fetch.sh
+          ./build/apply-patches.sh
+
+      - name: Build Snowfox
+        shell: bash
+        run: |
+          VERSION="$(tr -d '[:space:]' < firefox_version.txt)"
+          SRC="work/firefox-$VERSION"
+          cp mozconfig "$SRC/mozconfig"
+          cd "$SRC"
+          ./mach --no-interactive bootstrap --application-choice=browser || true
+          ./mach build
+
+      - name: Install Snowfox privacy config
+        shell: bash
+        run: ./build/install-config.sh
+
+      - name: Package installer
+        shell: bash
+        run: |
+          VERSION="$(tr -d '[:space:]' < firefox_version.txt)"
+          SRC="work/firefox-$VERSION"
+          cd "$SRC"
+          ./mach package
+          echo "Built artifacts:"
+          ls -R obj-snowfox/dist || true
+
+      - name: Collect artifacts
+        shell: bash
+        run: |
+          VERSION="$(tr -d '[:space:]' < firefox_version.txt)"
+          SRC="work/firefox-$VERSION"
+          mkdir -p out
+          # Copy whatever installer/package this platform produced into out/
+          find "$SRC" -path "*/dist/*" \( -name "*.dmg" -o -name "*.exe" -o -name "*.tar.*" -o -name "*.zip" \) \
+            -exec cp {} out/ \; || true
+          ls -la out || true
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: snowfox-${{ matrix.os_name }}
+          path: out/*
+          if-no-files-found: warn
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+      - name: Create / update Release with downloads
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/**/*
+          generate_release_notes: true
+          body: |
+            ## 🦊❄️ Snowfox ${{ github.ref_name }}
+
+            Download the build for your operating system below, then run it — no
+            cloning or building required.
+
+            | OS | File |
+            |----|------|
+            | 🪟 Windows | `*.exe` |
+            | 🍎 macOS | `*.dmg` |
+            | 🐧 Linux | `*.tar.*` |
+
+            > Note: builds are currently unsigned, so your OS may show a warning the
+            > first time you open Snowfox. You can safely allow it.
