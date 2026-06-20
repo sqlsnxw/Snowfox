@@ -1,22 +1,12 @@
-# Snowfox branding
+# Branding
 
-Put Snowfox's branding assets here. During the build, `apply-patches.sh` copies the
-contents of this folder into `browser/branding/snowfox/` in the Firefox source tree,
-and `mozconfig` can point the build at it via `--with-branding=browser/branding/snowfox`.
+Snowfox's icons and brand assets live here. When you do a source build, point the build
+at this folder with `--with-branding=browser/branding/snowfox` and it'll use these instead
+of the default Firefox branding.
 
-Typical files a Firefox branding directory contains:
+- `default16.png` through `default512.png` are the app icons at the sizes Firefox needs.
+- `content/` has the about-page logos.
+- `firefox.ico` is the Windows icon, `configure.sh` sets the app name, and
+  `locales/en-US/brand.ftl` holds the brand strings (the name shown in menus, titles, etc).
 
-| File | Purpose |
-|------|---------|
-| `default16.png` … `default128.png` | App icons at various sizes |
-| `firefox.icns` / `firefox.ico` | macOS / Windows app icons |
-| `content/about-logo.png` | Logo shown on about pages |
-| `locales/en-US/brand.ftl` | Brand strings (product name, vendor) |
-| `configure.sh` | Branding metadata (MOZ_APP_DISPLAYNAME, etc.) |
-
-See Firefox's own branding dirs (`browser/branding/nightly`, `browser/branding/official`)
-in the fetched source under `work/firefox-<version>/` for working examples to copy.
-
-> **Trademark note:** Do not ship Mozilla's Firefox logos or the "Firefox" name.
-> Use your own Snowfox artwork here so the build complies with Mozilla's
-> trademark policy.
+Don't ship Mozilla's Firefox logos here, that's the whole point of having our own set.
